@@ -1,0 +1,55 @@
+﻿@page "/games"
+@inject HttpClient Http
+@inject IConfiguration Config
+
+<h3>Gespeelde potjes</h3>
+
+@if (_games == null)
+{
+    <p>Laden...</p>
+}
+else
+{
+    <table border="1" cellpadding="6">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Jij</th>
+            <th>Computer</th>
+            <th>Resultaat</th>
+            <th>Tijd</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var g in _games)
+        {
+            <tr>
+                <td>@g.Id</td>
+                <td>@g.player_move</td>
+                <td>@g.computer_move</td>
+                <td>@g.Winner</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<GameDto>? _games;
+
+    private string ApiBaseUrl =>
+        (Config["RpsApi:BaseUrl"] ?? "http://localhost:8000").TrimEnd('/');
+
+    protected override async Task OnInitializedAsync()
+    {
+        _games = await Http.GetFromJsonAsync<List<GameDto>>($"{ApiBaseUrl}/games");
+    }
+
+    class GameDto
+    {
+        public int Id { get; set; }
+        public string player_move { get; set; } = "";
+        public string computer_move { get; set; } = "";
+        public string Winner { get; set; } = "";
+    }
+}

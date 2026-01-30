@@ -1,0 +1,177 @@
+/* Layout */
+.rps-title {
+    margin: 0 0 14px 0;
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+}
+
+.rps-layout {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+}
+
+/* Links (camera) */
+.rps-left {
+    flex: 1 1 420px;
+    min-width: 280px;
+}
+
+.rps-video {
+    width: 420px;
+    max-width: 100%;
+    aspect-ratio: 4 / 3;
+    background: #0b0f14;
+    border: 1px solid #d6dbe3;
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+
+/* Buttons */
+.rps-actions {
+    margin-top: 12px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.rps-btn {
+    appearance: none;
+    border: 1px solid #cfd6e3;
+    background: #ffffff;
+    color: #111827;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease, border-color 120ms ease;
+}
+
+.rps-btn:hover:enabled {
+    border-color: #b9c3d6;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+    transform: translateY(-1px);
+}
+
+.rps-btn:active:enabled {
+    transform: translateY(0px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+}
+
+.rps-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+/* Variants */
+.rps-btn-primary {
+    background: #111827;
+    border-color: #111827;
+    color: #ffffff;
+}
+
+.rps-btn-primary:hover:enabled {
+    background: #0b1220;
+    border-color: #0b1220;
+}
+
+.rps-btn-danger {
+    background: #fff5f5;
+    border-color: #ffd0d0;
+    color: #7f1d1d;
+}
+
+.rps-btn-danger:hover:enabled {
+    background: #ffe8e8;
+    border-color: #ffbcbc;
+}
+
+/* Status */
+.rps-status {
+    margin-top: 12px;
+    padding: 10px 12px;
+    border: 1px solid #e6eaf2;
+    background: #f8fafc;
+    border-radius: 12px;
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+}
+
+.rps-status-label {
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.rps-status-text {
+    color: #334155;
+    word-break: break-word;
+}
+
+/* Rechts (resultaat) */
+.rps-right {
+    flex: 0 1 320px;
+    min-width: 260px;
+}
+
+.rps-card {
+    border: 1px solid #e6eaf2;
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 14px;
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.06);
+}
+
+.rps-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 2px;
+}
+
+.rps-key {
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.rps-value {
+    font-weight: 600;
+    color: #334155;
+    text-align: right;
+    word-break: break-word;
+}
+
+.rps-divider {
+    height: 1px;
+    background: #e6eaf2;
+    margin: 8px 0;
+}
+
+.rps-winner .rps-value {
+    font-size: 1.05rem;
+    color: #111827;
+}
+
+/* Responsive */
+@media (max-width: 720px) {
+    .rps-right {
+        flex: 1 1 100%;
+        min-width: 0;
+    }
+
+    .rps-left {
+        flex: 1 1 100%;
+        min-width: 0;
+    }
+
+    .rps-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .rps-value {
+        text-align: left;
+    }
+}

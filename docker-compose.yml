@@ -1,0 +1,53 @@
+version: "3.9"
+
+services:
+  db:
+    image: mysql:8.4
+    container_name: rps-db
+    environment:
+      - MYSQL_DATABASE=rpsdb
+      - MYSQL_USER=rps
+      - MYSQL_PASSWORD=rps
+      - MYSQL_ROOT_PASSWORD=rootpass
+    volumes:
+      - rps-mysql-data:/var/lib/mysql
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: rps-frontend:dev
+    container_name: rps-frontend
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_URLS=http://0.0.0.0:8080
+      - RpsApi__BaseUrl=http://backend:8000
+    depends_on:
+      - backend
+    volumes:
+      - dpkeys:/app/dpkeys
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: rps-backend:dev
+    container_name: rps-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DEVICE=cpu
+      - MODEL_PATH=/app/model/rps_resnet18.pth
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_NAME=rpsdb
+      - DB_USER=rps
+      - DB_PASSWORD=rps
+    depends_on:
+      - db
+
+ 
+volumes:
+  rps-mysql-data:
+  dpkeys:
+

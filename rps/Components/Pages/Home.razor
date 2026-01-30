@@ -1,0 +1,156 @@
+﻿@page "/"
+@rendermode InteractiveServer
+@using System.Text.Json
+@inject IJSRuntime JS
+@inject HttpClient Http
+@inject IConfiguration Config
+@inject NavigationManager Nav
+
+<h3 class="rps-title">Steen Papier Schaar</h3>
+
+<div class="rps-layout">
+    <div class="rps-left">
+        <video id="camVideo" class="rps-video" autoplay playsinline></video>
+
+        <div class="rps-actions">
+            <button class="rps-btn" @onclick="StartCamera" disabled="@_cameraRunning">Start camera</button>
+            <button class="rps-btn rps-btn-primary" @onclick="Play" disabled="@(!_cameraRunning || _busy)">Speel</button>
+            <button class="rps-btn rps-btn-danger" @onclick="StopCamera" disabled="@(!_cameraRunning)">Stop</button>
+            <button class="rps-btn-primary" @onclick='() => Nav.NavigateTo("/games")'>Database</button>
+        </div>
+
+        <div class="rps-status">
+            <span class="rps-status-label">Status:</span>
+            <span class="rps-status-text">@_status</span>
+        </div>
+    </div>
+
+    <div class="rps-right">
+        <div class="rps-card">
+            <div class="rps-row"><span class="rps-key">Jouw move:</span> <span class="rps-value">@Prediction</span></div>
+            <div class="rps-row"><span class="rps-key">Computer move:</span> <span class="rps-value">@Computer</span></div>
+            <div class="rps-divider"></div>
+            <div class="rps-row rps-winner"><span class="rps-key">Winnaar:</span> <span class="rps-value">@Winner</span></div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool _cameraRunning = false;
+    private bool _busy = false;
+
+    private string _status = "Niet gestart.";
+
+    public string Prediction { get; set; } = "-";
+    public string Computer { get; set; } = "-"; 
+    public string Winner { get; set; } = "-";
+        
+    // In Docker Compose: RpsApi__BaseUrl=http://backend:8000
+    // Lokaal fallback: http://localhost:8000
+    private string ApiBaseUrl => (Config["RpsApi:BaseUrl"] ?? "http://localhost:8000").TrimEnd('/');
+
+    private async Task StartCamera()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("rpsCamera.start", "camVideo");
+            _cameraRunning = true;
+            _status = "Camera actief.";
+        }
+        catch (Exception ex)
+        {
+            _status = $"Camera start fout: {ex.Message}";
+        }
+    }
+
+    private async Task StopCamera()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("rpsCamera.stop");
+            _cameraRunning = false;
+            _status = "Camera gestopt.";
+        }
+        catch (Exception ex)
+        {
+            _status = $"Camera stop fout: {ex.Message}";
+        }
+    }
+
+
+    private async Task Play()
+    {
+        _busy = true;
+        _status = "Aftellen...";
+
+        try
+        {
+            for (int i = 3; i >= 1; i--)
+            {
+                _status = $"Foto maken over: {i}...";
+                StateHasChanged();
+                await Task.Delay(1000);
+            }
+
+            _status = "Foto maken...";
+            StateHasChanged();
+
+            string base64 = await JS.InvokeAsync<string>(
+                "rpsCamera.captureJpegBase64",
+                "camVideo",
+                640, 480,
+                0.9
+            );
+
+            byte[] jpegBytes = Convert.FromBase64String(base64);
+
+            using var content = new MultipartFormDataContent();
+            using var byteContent = new ByteArrayContent(jpegBytes);
+            byteContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("image/jpeg");
+            content.Add(byteContent, "file", "snapshot.jpg");
+
+            _status = "Uploaden naar backend...";
+            StateHasChanged();
+
+            var url = $"{ApiBaseUrl}/play";
+            using var response = await Http.PostAsync(url, content);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                string body = await response.Content.ReadAsStringAsync();
+                _status = $"Backend fout: {(int)response.StatusCode} - {body}";
+                return;
+            }
+            
+            string json = await response.Content.ReadAsStringAsync();
+
+            PlayResponse result =
+                JsonSerializer.Deserialize<PlayResponse>(json)!;
+
+            Prediction = result.prediction;   // jouw move
+            Computer   = result.computer;     // computer move
+            Winner    = result.winner;       // win / lose / tie
+
+
+            _status = "Klaar.";
+        }
+        catch (Exception ex)
+        {
+            _status = $"Fout: {ex.Message}";
+        }
+        finally
+        {
+            _busy = false;
+        }
+        
+        
+    }
+    
+    public class PlayResponse
+    {
+        public string prediction { get; set; } = default!;
+        public string computer { get; set; } = default!;
+        public string winner { get; set; } = default!;
+    }
+
+}
