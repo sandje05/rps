@@ -1,0 +1,1 @@
+My first time using ML to do something. this project uses you camera and a resnet model to see you move. you can play against a computer who randomly selects one of the 3 options and it will detect who won.
